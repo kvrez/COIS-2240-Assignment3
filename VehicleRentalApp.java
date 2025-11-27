@@ -59,11 +59,14 @@ public class VehicleRentalApp {
 		            }
                     
                     if (vehicle != null){
-	                    vehicle.setLicensePlate(plate);
-	                    rentalSystem.addVehicle(vehicle);
+                        vehicle.setLicensePlate(plate);
+                        boolean added = rentalSystem.addVehicle(vehicle);
+                        if (!added) {
+                            System.out.println("Vehicle not added successfully.");
+                        }
                     }
                     else {
-	                    System.out.println("Vehicle not added successfully.");
+                        System.out.println("Vehicle not added successfully.");
                     }
                     break;
 
@@ -74,8 +77,10 @@ public class VehicleRentalApp {
                     System.out.print("Enter name: ");
                     String cname = scanner.nextLine();
 
-                    rentalSystem.addCustomer(new Customer(cid, cname));
-                    System.out.println("Customer added successfully.");
+                    boolean added = rentalSystem.addCustomer(new Customer(cid, cname));
+                    if (added) {
+                        System.out.println("Customer added successfully.");
+                    }
                     break;
                     
                 case 3:
