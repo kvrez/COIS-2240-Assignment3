@@ -3,6 +3,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
 
 public class RentalSystem {
 	
@@ -13,6 +16,7 @@ public class RentalSystem {
     private RentalHistory rentalHistory = new RentalHistory();
     
     private RentalSystem() {
+    	loadData();
     }
 
     public static RentalSystem getInstance() {
@@ -199,6 +203,111 @@ public class RentalSystem {
             
         } catch (IOException e) {
             System.out.println("Error saving rental record: " + e.getMessage());
+        }
+    }
+    
+    private void loadData() {
+        // Load vehicles data
+        File vehicleFile = new File("vehicles.txt");
+        if (vehicleFile.exists()) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader("vehicles.txt"));
+                String line;
+                
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("\\|");
+                    
+                    String vehicleType = parts[0];
+                    String plate = parts[1];
+                    String make = parts[2];
+                    String model = parts[3];
+                    int year = Integer.parseInt(parts[4]);
+                    String status = parts[5];
+                    String specificInfo = parts[6];
+                    
+                    Vehicle vehicle = null;
+                    
+                    if (vehicleType.equals("Car")) {
+                        int numSeats = Integer.parseInt(specificInfo);
+                        vehicle = new Car(make, model, year, numSeats);
+                    } else if (vehicleType.equals("Minibus")) {
+                        boolean isAccessible = Boolean.parseBoolean(specificInfo);
+                        vehicle = new Minibus(make, model, year, isAccessible);
+                    } else if (vehicleType.equals("PickupTruck")) {
+                        String[] truckInfo = specificInfo.split(",");
+                        double cargoSize = Double.parseDouble(truckInfo[0]);
+                        boolean hasTrailer = Boolean.parseBoolean(truckInfo[1]);
+                        vehicle = new PickupTruck(make, model, year, cargoSize, hasTrailer);
+                    }
+                    
+                    if (vehicle != null) {
+                        vehicle.setLicensePlate(plate);
+                        vehicle.setStatus(Vehicle.VehicleStatus.valueOf(status));
+                        vehicles.add(vehicle);
+                    }
+                }
+                
+                reader.close();
+                
+            } catch (Exception e) {
+                System.out.println("Error loading vehicles: " + e.getMessage());
+            }
+        }
+        
+        // Load customers data
+        File customerFile = new File("customers.txt");
+        if (customerFile.exists()) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader("customers.txt"));
+                String line;
+                
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("\\|");
+                    
+                    int customerId = Integer.parseInt(parts[0]);
+                    String customerName = parts[1];
+                    
+                    Customer customer = new Customer(customerId, customerName);
+                    customers.add(customer);
+                }
+                
+                reader.close();
+                
+            } catch (Exception e) {
+                System.out.println("Error loading customers: " + e.getMessage());
+            }
+        }
+        
+        // Load rental records data
+        File recordFile = new File("rental_records.txt");
+        if (recordFile.exists()) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader("rental_records.txt"));
+                String line;
+                
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("\\|");
+                    
+                    String recordType = parts[0];
+                    String licensePlate = parts[1];
+                    int customerId = Integer.parseInt(parts[2]);
+                    LocalDate date = LocalDate.parse(parts[3]);
+                    double amount = Double.parseDouble(parts[4]);
+                    
+                    Vehicle vehicle = findVehicleByPlate(licensePlate);
+                    Customer customer = findCustomerById(customerId);
+                    
+                    if (vehicle != null && customer != null) {
+                        RentalRecord record = new RentalRecord(vehicle, customer, date, amount, recordType);
+                        rentalHistory.addRecord(record);
+                    }
+                }
+                
+                reader.close();
+                
+            } catch (Exception e) {
+                System.out.println("Error loading rental records: " + e.getMessage());
+            }
         }
     }
 }
