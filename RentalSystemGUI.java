@@ -7,6 +7,7 @@ import javafx.stage.Stage;
 
 public class RentalSystemGUI extends Application {
 
+    private RentalSystem rentalSystem;
     private TextArea outputArea;
 
     private ComboBox<String> rentVehicleBox;
@@ -20,6 +21,7 @@ public class RentalSystemGUI extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        rentalSystem = RentalSystem.getInstance();
 
         VBox mainBox = new VBox(15);
         mainBox.setPadding(new Insets(20));
@@ -49,6 +51,38 @@ public class RentalSystemGUI extends Application {
 
         Button addVehicleBtn = new Button("Add Vehicle");
         addVehicleBtn.setOnAction(e -> {
+            try {
+                String type = vType.getText().trim();
+                String make = vMake.getText().trim();
+                String model = vModel.getText().trim();
+                int year = Integer.parseInt(vYear.getText().trim());
+                String plate = vPlate.getText().trim();
+                String specific = vSpecific.getText().trim();
+
+                Vehicle vehicle = null;
+                if (type.equals("Car")) {
+                    int seats = Integer.parseInt(specific);
+                    vehicle = new Car(make, model, year, seats);
+                } else if (type.equals("Minibus")) {
+                    boolean accessible = Boolean.parseBoolean(specific);
+                    vehicle = new Minibus(make, model, year, accessible);
+                } else if (type.equals("PickupTruck")) {
+                    String[] parts = specific.split(",");
+                    double cargo = Double.parseDouble(parts[0]);
+                    boolean trailer = Boolean.parseBoolean(parts[1]);
+                    vehicle = new PickupTruck(make, model, year, cargo, trailer);
+                } else {
+                    outputArea.appendText("ERROR: Type must be Car, Minibus, or PickupTruck\n");
+                    return;
+                }
+
+                vehicle.setLicensePlate(plate);
+                rentalSystem.addVehicle(vehicle);
+                outputArea.appendText("Vehicle added: " + plate + "\n");
+                vType.clear(); vMake.clear(); vModel.clear(); vYear.clear(); vPlate.clear(); vSpecific.clear();
+            } catch (Exception ex) {
+                outputArea.appendText("ERROR: " + ex.getMessage() + "\n");
+            }
         });
 
         Separator sep1 = new Separator();
@@ -65,6 +99,17 @@ public class RentalSystemGUI extends Application {
 
         Button addCustomerBtn = new Button("Add Customer");
         addCustomerBtn.setOnAction(e -> {
+            try {
+                int id = Integer.parseInt(custId.getText().trim());
+                String name = custName.getText().trim();
+                Customer customer = new Customer(id, name);
+                rentalSystem.addCustomer(customer);
+                outputArea.appendText("Customer added: " + name + "\n");
+                custId.clear();
+                custName.clear();
+            } catch (Exception ex) {
+                outputArea.appendText("ERROR: " + ex.getMessage() + "\n");
+            }
         });
 
         Separator sep2 = new Separator();
@@ -125,20 +170,16 @@ public class RentalSystemGUI extends Application {
         displayTitle.setStyle("-fx-font-weight: bold;");
 
         Button showAvailableBtn = new Button("Show Available Vehicles");
-        showAvailableBtn.setOnAction(e -> {
-        });
+        showAvailableBtn.setOnAction(e -> captureOutput(() -> rentalSystem.displayVehicles(Vehicle.VehicleStatus.Available)));
 
         Button showAllVehiclesBtn = new Button("Show All Vehicles");
-        showAllVehiclesBtn.setOnAction(e -> {
-        });
+        showAllVehiclesBtn.setOnAction(e -> captureOutput(() -> rentalSystem.displayVehicles(null)));
 
         Button showCustomersBtn = new Button("Show All Customers");
-        showCustomersBtn.setOnAction(e -> {
-        });
+        showCustomersBtn.setOnAction(e -> captureOutput(() -> rentalSystem.displayAllCustomers()));
 
         Button showHistoryBtn = new Button("Show Rental History");
-        showHistoryBtn.setOnAction(e -> {
-        });
+        showHistoryBtn.setOnAction(e -> captureOutput(() -> rentalSystem.displayRentalHistory()));
 
         outputArea = new TextArea();
         outputArea.setEditable(false);
@@ -157,7 +198,7 @@ public class RentalSystemGUI extends Application {
             sep4,
             displayTitle, showAvailableBtn, showAllVehiclesBtn, showCustomersBtn, showHistoryBtn
         );
-
+        
         // Keep output on the right side
         VBox rightBox = new VBox(5, new Label("Output:"), outputArea);
         rightBox.setPadding(new Insets(20, 20, 20, 0));
@@ -171,5 +212,16 @@ public class RentalSystemGUI extends Application {
         primaryStage.setTitle("Vehicle Rental System");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void captureOutput(Runnable action) {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        java.io.PrintStream ps = new java.io.PrintStream(baos);
+        java.io.PrintStream old = System.out;
+        System.setOut(ps);
+        action.run();
+        System.out.flush();
+        System.setOut(old);
+        outputArea.setText(baos.toString());
     }
 }
