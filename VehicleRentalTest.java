@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import java.time.LocalDate;
 
 public class VehicleRentalTest {
     
@@ -47,5 +48,39 @@ public class VehicleRentalTest {
             car7.setLicensePlate("ZZZ99");
         });
         assertFalse(car7.getLicensePlate() != null);
+    }
+    
+    @Test
+    public void testRentAndReturnVehicle() {
+        // Create a vehicle and customer
+        Vehicle car = new Car("Toyota", "Camry", 2020, 5);
+        car.setLicensePlate("GKD532");
+        Customer customer = new Customer(003, "User");
+
+        // Vehicle should start as available
+        assertEquals(Vehicle.VehicleStatus.Available, car.getStatus());
+
+        // Get RentalSystem
+        RentalSystem rentalSystem = RentalSystem.getInstance();
+        rentalSystem.addVehicle(car);
+        rentalSystem.addCustomer(customer);
+
+        // Rent the vehicle
+        boolean rentSuccess = rentalSystem.rentVehicle(car, customer, LocalDate.now(), 0.0);
+        assertTrue(rentSuccess);
+        assertEquals(Vehicle.VehicleStatus.Rented, car.getStatus());
+
+        // Renting again should fail
+        boolean rentFailure = rentalSystem.rentVehicle(car, customer, LocalDate.now(), 0.0);
+        assertFalse(rentFailure);
+
+        // Return the vehicle
+        boolean returnSuccess = rentalSystem.returnVehicle(car, customer, LocalDate.now(), 0.0);
+        assertTrue(returnSuccess);
+        assertEquals(Vehicle.VehicleStatus.Available, car.getStatus());
+
+        // Returning again should fail
+        boolean returnFailure = rentalSystem.returnVehicle(car, customer, LocalDate.now(), 0.0);
+        assertFalse(returnFailure);
     }
 }
