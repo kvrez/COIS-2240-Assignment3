@@ -25,9 +25,48 @@ public abstract class Vehicle {
         }
         return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
+    
+    private boolean isValidPlate(String plate) {
+        // Check if plate is null or empty
+        if (plate == null || plate.isEmpty()) {
+            return false;
+        }
+        
+        // Ensures plate is 6 characters
+        if (plate.length() != 6) {
+            return false;
+        }
+        
+        //  Ensures first 3 characters are letters
+        if (Character.isLetter(plate.charAt(0)) == false) {
+            return false;
+        }
+        if (Character.isLetter(plate.charAt(1)) == false) {
+            return false;
+        }
+        if (Character.isLetter(plate.charAt(2)) == false) {
+            return false;
+        }
+        
+        // Ensures last 3 characters are digits
+        if (Character.isDigit(plate.charAt(3)) == false) {
+            return false;
+        }
+        if (Character.isDigit(plate.charAt(4)) == false) {
+            return false;
+        }
+        if (Character.isDigit(plate.charAt(5)) == false) {
+            return false;
+        }
+        
+        return true;
+    }
 
     public void setLicensePlate(String plate) {
-        this.licensePlate = plate == null ? null : plate.toUpperCase();
+        if (isValidPlate(plate) == false) {
+            throw new IllegalArgumentException("Invalid license plate. Should be 3 letters and 3 numbers (Ex. ABC123).");
+        }
+        this.licensePlate = plate.toUpperCase();
     }
 
     public void setStatus(VehicleStatus status) {

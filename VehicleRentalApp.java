@@ -59,10 +59,14 @@ public class VehicleRentalApp {
 		            }
                     
                     if (vehicle != null){
-                        vehicle.setLicensePlate(plate);
-                        boolean added = rentalSystem.addVehicle(vehicle);
-                        if (!added) {
-                            System.out.println("Vehicle not added successfully.");
+                        try {
+                            vehicle.setLicensePlate(plate);
+                            boolean added = rentalSystem.addVehicle(vehicle);
+                            if (added == false) {
+                                System.out.println("Vehicle not added successfully.");
+                            }
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("Error: " + e.getMessage());
                         }
                     }
                     else {
