@@ -331,4 +331,12 @@ public class RentalSystem {
             }
         }
     }
+    
+    public List<Vehicle> getAllVehicles() {
+        return new ArrayList<>(vehicles);
+    }
+
+    public List<Customer> getAllCustomers() {
+        return new ArrayList<>(customers);
+    }
 }
